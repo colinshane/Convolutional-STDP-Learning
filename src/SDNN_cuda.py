@@ -13,8 +13,6 @@ from timeit import default_timer as timer
 
 class SDNN:
     """ 
-        __author__ = Nicolas Perez-Nieves
-        __email__ = nicolas.perez14@imperial.ac.uk
 
         This class implements a STDP-based Spiking Convolutional Deep Neural Network 
         for image or video recognition. This implementation is based on the implementation on [1]

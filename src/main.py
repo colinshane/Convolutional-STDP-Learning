@@ -1,9 +1,4 @@
 """
-__author__ = Nicolas Perez-Nieves
-__email__ = nicolas.perez14@imperial.ac.uk
-
-SDNN Implementation based on Kheradpisheh, S.R., et al. 'STDP-based spiking deep neural networks 
-for object recognition'. arXiv:1611.01421v1 (Nov, 2016)
 """
 from sklearn.neural_network import MLPClassifier
 from SDNN_cuda import SDNN
