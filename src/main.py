@@ -1,5 +1,3 @@
-"""
-"""
 from sklearn.neural_network import MLPClassifier
 from SDNN_cuda import SDNN
 from Classifier import Classifier
@@ -13,7 +11,7 @@ import time
 def main():
 
     # Flags
-    learn_SDNN = True  # This flag toggles between Learning STDP and classify features
+    learn_SDNN = False  # This flag toggles between Learning STDP and classify features
     # or just classify by loading pretrained weights for the face/motor dataset
     if learn_SDNN:
         set_weights = False  # Loads the weights from a path (path_set_weigths) and prevents any SDNN learning
@@ -22,16 +20,16 @@ def main():
     else:
         set_weights = True  # Loads the weights from a path (path_set_weigths) and prevents any SDNN learning
         save_weights = False  # Saves the weights in a path (path_save_weigths)
-        save_features = True  # Saves the features and labels in the specified path (path_features)
+        save_features = False  # Saves the features and labels in the specified path (path_features)
 
     # ------------------------------- Learn, Train and Test paths-------------------------------#
     # Image sets directories
     path = dirname(dirname(realpath(__file__)))
-    # spike_times_learn = [path + '/datasets/LearningSet/Face/', path + '/datasets/LearningSet/Motor/']
-    # spike_times_train = [path + '/datasets/TrainingSet/Face/', path + '/datasets/TrainingSet/Motor/']
-    # spike_times_test = [path + '/datasets/TestingSet/Face/', path + '/datasets/TestingSet/Motor/']
-    spike_times_train = [path + "/mnist/training/" + str(i) for i in range(10)]
-    spike_times_test =  [path + "/mnist/testing/" + str(i) for i in range(10)]
+    spike_times_learn = [path + '/datasets/LearningSet/Face/', path + '/datasets/LearningSet/Motor/']
+    spike_times_train = [path + '/datasets/TrainingSet/Face/', path + '/datasets/TrainingSet/Motor/']
+    spike_times_test = [path + '/datasets/TestingSet/Face/', path + '/datasets/TestingSet/Motor/']
+    # spike_times_train = [path + "/mnist/training/" + str(i) for i in range(10)]
+    # spike_times_test =  [path + "/mnist/testing/" + str(i) for i in range(10)]
 
     # Results directories
     path_set_weigths = '../results/'
@@ -40,7 +38,7 @@ def main():
 
     # ------------------------------- SDNN -------------------------------#
     # SDNN_cuda parameters
-    DoG_params = {'img_size': (28, 28), 'DoG_size': 7, 'std1': 1., 'std2': 2.}  # img_size is (col size, row size)
+    DoG_params = {'img_size': (250, 160), 'DoG_size': 7, 'std1': 1., 'std2': 2.}  # img_size is (col size, row size)
     total_time = 15
     network_params = [{'Type': 'input', 'num_filters': 1, 'pad': (0, 0), 'H_layer': DoG_params['img_size'][1],
                        'W_layer': DoG_params['img_size'][0]},
@@ -52,7 +50,7 @@ def main():
 
     weight_params = {'mean': 0.8, 'std': 0.01}
 
-    max_learn_iter = [0, 10000, 0, 15000, 0, 20000, 0]
+    max_learn_iter = [0, 3000, 0, 5000, 0, 6000, 0]
     stdp_params = {'max_learn_iter': max_learn_iter,
                    'stdp_per_layer': [0, 10, 0, 4, 0, 2],
                    'max_iter': sum(max_learn_iter),
@@ -83,25 +81,25 @@ def main():
             np.save(path_save_weigths + 'weight_' + str(i), weights[i])
 
     # Get features
-    X_train, y_train = first_net.train_features()
-    X_test, y_test = first_net.test_features()
+    # X_train, y_train = first_net.train_features()
+    # X_test, y_test = first_net.test_features()
 
     # Save X_train and X_test
-    if save_features:
-        np.save(path_features + 'X_train', X_train)
-        np.save(path_features + 'y_train', y_train)
-        np.save(path_features + 'X_test', X_test)
-        np.save(path_features + 'y_test', y_test)
-        np.savetxt(path_features + 'X_train', X_train)
-        np.savetxt(path_features + 'y_train', y_train)
-        np.savetxt(path_features + 'X_test', X_test)
-        np.savetxt(path_features + 'y_test', y_test)
+    # if save_features:
+    #     np.save(path_features + 'X_train', X_train)
+    #     np.save(path_features + 'y_train', y_train)
+    #     np.save(path_features + 'X_test', X_test)
+    #     np.save(path_features + 'y_test', y_test)
+    #     np.savetxt(path_features + 'X_train', X_train)
+    #     np.savetxt(path_features + 'y_train', y_train)
+    #     np.savetxt(path_features + 'X_test', X_test)
+    #     np.savetxt(path_features + 'y_test', y_test)
 
-    # X_train = np.load(path_features + 'X_train.npy')
-    # y_train = np.load(path_features + 'y_train.npy')
+    X_train = np.load(path_features + 'X_train.npy')
+    y_train = np.load(path_features + 'y_train.npy')
 
-    # X_test = np.load(path_features + 'X_test.npy')
-    # y_test = np.load(path_features + 'y_test.npy')
+    X_test = np.load(path_features + 'X_test.npy')
+    y_test = np.load(path_features + 'y_test.npy')
     s = np.random.permutation(np.shape(X_train)[0])
     X_train, y_train = X_train[s], y_train[s]
     s1 = np.random.permutation(np.shape(X_test)[0])
@@ -115,13 +113,13 @@ def main():
     X_test -= train_mean
     X_train /= (train_std + 1e-5)
     X_test /= (train_std + 1e-5)
-   # svm = Classifier(X_train, y_train, X_test, y_test, classifier_params, classifier_type='SVM')
-   # train_score, test_score = svm.run_classiffier()
-    
-    clf = MLPClassifier(solver='lbfgs', hidden_layer_sizes=(10))
-    clf.fit(X_train, y_train)
-    train_score = clf.score(X_train, y_train)
-    test_score = clf.score(X_test, y_test)
+    #clf = MLPClassifier(solver='lbfgs', hidden_layer_sizes=(30))
+    #clf.fit(X_train, y_train)
+    #train_score = clf.score(X_train, y_train)
+    #test_score = clf.score(X_test, y_test)
+    svm = Classifier(X_train, y_train, X_test, y_test, classifier_params, classifier_type='SVM')
+    train_score, test_score = svm.run_classiffier()
+
     print('Train Score: ' + str(train_score))
     print('Test Score: ' + str(test_score))
 
